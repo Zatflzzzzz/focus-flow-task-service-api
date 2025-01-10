@@ -1,0 +1,11 @@
+---
+  server:
+    port: 8080
+
+  spring:
+    datasource:
+      url: jdbc:postgresql://localhost:5432/focus-flow-task-tracker
+      username: postgres
+      password: Timofey7828102
+      driver-class-name: org.postgresql.Driver
+
