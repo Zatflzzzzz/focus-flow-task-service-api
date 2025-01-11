@@ -1,4 +1,4 @@
-package org.myOrganization.focus.flow.tracker.api;
+package org.myProject.focus.flow.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
