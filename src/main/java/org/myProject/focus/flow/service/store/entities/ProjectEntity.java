@@ -11,8 +11,10 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "project")
 public class ProjectEntity {
@@ -21,11 +23,15 @@ public class ProjectEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     String name;
 
+    @Builder.Default
     LocalDateTime createdAt = LocalDateTime.now();
-    
+
+    @Builder.Default
+    LocalDateTime updatedAt = LocalDateTime.now();
+
     Long userId;
 
     @OneToMany

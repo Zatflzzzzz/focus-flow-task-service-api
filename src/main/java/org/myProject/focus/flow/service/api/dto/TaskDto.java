@@ -1,6 +1,6 @@
-package org.myProject.focus.flow.service.store.entities;
+package org.myProject.focus.flow.service.api.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.store.entities.enums.Category;
@@ -8,31 +8,35 @@ import org.myProject.focus.flow.service.store.entities.enums.Priority;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "task")
-public class TaskEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+public class TaskDto {
+    @NonNull
     Long id;
 
-    @Column(nullable = false, unique = true)
+    @NonNull
     String title;
 
+    @NonNull
     String description;
 
+    @NonNull
     LocalDateTime deadline;
 
+    @NonNull
     Category category;
 
+    @NonNull
     Priority priority;
 
+    @NonNull
+    @JsonProperty("updated_at")
     LocalDateTime updatedAt;
 
+    @NonNull
+    @JsonProperty("created_at")
     LocalDateTime createdAt;
 }
