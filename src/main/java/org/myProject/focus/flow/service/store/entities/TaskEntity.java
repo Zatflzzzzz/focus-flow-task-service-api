@@ -21,7 +21,6 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
-    @Column(nullable = false, unique = true)
     String title;
 
     String description;
@@ -32,7 +31,9 @@ public class TaskEntity {
 
     Priority priority;
 
-    LocalDateTime updatedAt;
+    @Builder.Default
+    LocalDateTime updatedAt = LocalDateTime.now();
 
-    LocalDateTime createdAt;
+    @Builder.Default
+    LocalDateTime createdAt = LocalDateTime.now();
 }

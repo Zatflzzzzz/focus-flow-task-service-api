@@ -1,20 +1,19 @@
 package org.myProject.focus.flow.service.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.store.entities.enums.Layouts;
-import org.myProject.focus.flow.service.store.entities.enums.Priority;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TaskViewDto {
+public class TaskStateDto {
     @NonNull
     Long id;
     
@@ -25,10 +24,17 @@ public class TaskViewDto {
     @JsonProperty("type_of_layout")
     Layouts typeOfLayout;
 
-    @NonNull
-    Long ordinal;
+    @JsonProperty("left_task_state_id")
+    Long leftTaskStateId;
+
+    @JsonProperty("right_task_state_id")
+    Long rightTaskStateId;
 
     @NonNull
     @JsonProperty("created_at")
     LocalDateTime createdAt;
+
+    @NonNull
+    List<TaskDto> tasks;
+
 }

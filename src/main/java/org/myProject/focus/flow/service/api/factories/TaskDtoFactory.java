@@ -1,15 +1,13 @@
 package org.myProject.focus.flow.service.api.factories;
 
 import org.myProject.focus.flow.service.api.dto.TaskDto;
-import org.myProject.focus.flow.service.api.dto.TaskViewDto;
 import org.myProject.focus.flow.service.store.entities.TaskEntity;
-import org.myProject.focus.flow.service.store.entities.TaskViewEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TaskFactory {
+public class TaskDtoFactory {
 
-    public TaskDto makeTaskViewDto(TaskEntity entity) {
+    public TaskDto makeTaskDto(TaskEntity entity) {
 
         return TaskDto.builder()
                 .id(entity.getId())

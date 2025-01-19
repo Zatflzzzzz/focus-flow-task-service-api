@@ -8,6 +8,8 @@ import org.myProject.focus.flow.service.api.dto.ActDto;
 import org.myProject.focus.flow.service.api.dto.ProjectDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
 import org.myProject.focus.flow.service.api.factories.ProjectDtoFactory;
+import org.myProject.focus.flow.service.api.services.EntityFetchService;
+import org.myProject.focus.flow.service.api.services.ValidateRequestsService;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.repositories.ProjectRepository;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,10 @@ public class ProjectController {
     ProjectRepository projectRepository;
 
     ProjectDtoFactory projectDtoFactory;
+
+    EntityFetchService entityFetchService;
+
+    ValidateRequestsService validateUserRequestService;
 
     public static final String FETCH_PROJECT = "/api/projects";
     public static final String CREATE_OR_UPDATE_PROJECT = "/api/projects";
@@ -64,27 +70,27 @@ public class ProjectController {
         }
 
         final ProjectEntity project = optionalProjectId
-                .map(this::getProjectOrThrowException)
+                .map(entityFetchService::getProjectOrThrowException)
                 .orElseGet(() -> ProjectEntity.builder().userId(userId).build());
 
         optionalProjectName
                 .ifPresent(projectName -> {
 
-                    validateUserAccess(project, userId);
+                    validateUserRequestService.verifyingUserAccessToProject(project.getUserId(), userId);
 
                     projectRepository
                             .findByName(projectName)
                             .filter(anotherProject -> !Objects.equals(anotherProject.getId(), project.getId()))
                             .ifPresent(anotherProject -> {
                                 throw new CustomAppException(HttpStatus.BAD_REQUEST,
-                                        String.format("Project %s already exists", projectName));
+                                        String.format("Project with name %s is already exists", projectName));
                             });
 
                     project.setName(projectName);
                 });
 
         final ProjectEntity savedProject = projectRepository.saveAndFlush(project);
-        System.out.println(project);
+
         return projectDtoFactory.makeProjectDto(savedProject);
     }
 
@@ -93,30 +99,12 @@ public class ProjectController {
             @PathVariable("project_id") Long projectId,
             @RequestParam(value = "user_id") Long userId) {
 
-        ProjectEntity project = getProjectOrThrowException(projectId);
+        ProjectEntity project = entityFetchService.getProjectOrThrowException(projectId);
 
-        validateUserAccess(project, userId);
+        validateUserRequestService.verifyingUserAccessToProject(project.getUserId(), userId);
 
         projectRepository.deleteById(projectId);
 
         return ActDto.makeDefault(true);
     }
-
-    private ProjectEntity getProjectOrThrowException(Long projectId) {
-        return projectRepository
-                .findById(projectId)
-                .orElseThrow(() ->
-                        new CustomAppException(
-                                HttpStatus.NOT_FOUND,
-                                String.format("Project with %s doesn't exist", projectId)
-                        ));
-    }
-
-    private void validateUserAccess(ProjectEntity project, Long userId) {
-        if (!Objects.equals(project.getUserId(), userId)) {
-            throw new CustomAppException(HttpStatus.FORBIDDEN,
-                    String.format("You does not have access to project with name %s", project.getName()));
-        }
-    }
-
 }

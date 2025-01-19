@@ -36,7 +36,7 @@ public class ProjectEntity {
 
     @OneToMany
     @JoinColumn(name = "project_id", referencedColumnName = "id")
-    List<TaskViewEntity> taskLayouts = new ArrayList<>();
+    List<TaskStateEntity> taskStates = new ArrayList<>();
 
 }
 
