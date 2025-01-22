@@ -4,12 +4,12 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.myProject.focus.flow.service.api.dto.ActDto;
+import org.myProject.focus.flow.service.api.controllers.helpers.ProjectHelper;
+import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
+import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.ProjectDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
 import org.myProject.focus.flow.service.api.factories.ProjectDtoFactory;
-import org.myProject.focus.flow.service.api.services.EntityFetchService;
-import org.myProject.focus.flow.service.api.services.ValidateRequestsService;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.repositories.ProjectRepository;
 import org.springframework.http.HttpStatus;
@@ -31,9 +31,9 @@ public class ProjectController {
 
     ProjectDtoFactory projectDtoFactory;
 
-    EntityFetchService entityFetchService;
+    ProjectHelper projectHelper;
 
-    ValidateRequestsService validateUserRequestService;
+    ValidateRequestsHelper validateRequestsHelper;
 
     public static final String FETCH_PROJECT = "/api/projects";
     public static final String CREATE_OR_UPDATE_PROJECT = "/api/projects";
@@ -70,13 +70,13 @@ public class ProjectController {
         }
 
         final ProjectEntity project = optionalProjectId
-                .map(entityFetchService::getProjectOrThrowException)
+                .map(projectHelper::getProjectOrThrowException)
                 .orElseGet(() -> ProjectEntity.builder().userId(userId).build());
+
+        validateRequestsHelper.verifyingUserAccessToProject(project.getUserId(), userId);
 
         optionalProjectName
                 .ifPresent(projectName -> {
-
-                    validateUserRequestService.verifyingUserAccessToProject(project.getUserId(), userId);
 
                     projectRepository
                             .findByName(projectName)
@@ -95,16 +95,16 @@ public class ProjectController {
     }
 
     @DeleteMapping(DELETE_PROJECT)
-    public ActDto deleteProject(
+    public AckDto deleteProject(
             @PathVariable("project_id") Long projectId,
             @RequestParam(value = "user_id") Long userId) {
 
-        ProjectEntity project = entityFetchService.getProjectOrThrowException(projectId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
 
-        validateUserRequestService.verifyingUserAccessToProject(project.getUserId(), userId);
+        validateRequestsHelper.verifyingUserAccessToProject(project.getUserId(), userId);
 
         projectRepository.deleteById(projectId);
 
-        return ActDto.makeDefault(true);
+        return AckDto.makeDefault(true);
     }
 }

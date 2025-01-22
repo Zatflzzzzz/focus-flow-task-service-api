@@ -4,13 +4,13 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.myProject.focus.flow.service.api.dto.ActDto;
+import org.myProject.focus.flow.service.api.controllers.helpers.ProjectHelper;
+import org.myProject.focus.flow.service.api.controllers.helpers.TaskStateHelper;
+import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
+import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.TaskStateDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
-import org.myProject.focus.flow.service.api.factories.TaskDtoStateFactory;
-import org.myProject.focus.flow.service.api.services.TaskStatePositionService;
-import org.myProject.focus.flow.service.api.services.EntityFetchService;
-import org.myProject.focus.flow.service.api.services.ValidateRequestsService;
+import org.myProject.focus.flow.service.api.factories.TaskStateDtoFactory;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.entities.TaskStateEntity;
 import org.myProject.focus.flow.service.store.entities.enums.Layouts;
@@ -30,14 +30,14 @@ public class TaskStateController {
 
     TaskStateRepository taskStateRepository;
 
-    TaskDtoStateFactory taskDtoStateFactory;
+    TaskStateDtoFactory taskStateDtoFactory;
 
-    EntityFetchService entityFetchService;
+    ValidateRequestsHelper validateRequestsService;
 
-    ValidateRequestsService validateUserRequestsService;
+    ProjectHelper projectHelper;
 
-    TaskStatePositionService taskStatePositionService;
-    
+    TaskStateHelper taskStateHelper;
+
     public static final String GET_TASK_STATES = "/api/projects/{project_id}/tasks-states";
     public static final String CREATE_TASK_STATE = "/api/projects/{project_id}/tasks-states";
     public static final String UPDATE_TASK_STATE = "/api/tasks-states/{task_state_id}";
@@ -45,18 +45,18 @@ public class TaskStateController {
     public static final String DELETE_TASK_STATE = "/api/tasks-states/{task_state_id}";
 
     @GetMapping(GET_TASK_STATES)
-    public List<TaskStateDto> getTaskStates(
-            @PathVariable(name = "project_id") Long projectId,
-            @RequestParam(value = "user_id") Long userId) {
+    public List<TaskStateDto> getTasks(
+            @PathVariable("project_id") Long projectId,
+            @RequestParam("user_id") Long userId) {
 
-        ProjectEntity project = entityFetchService.getProjectOrThrowException(projectId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
 
-        validateUserRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
+        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
 
-        return entityFetchService
+        return taskStateHelper
                 .getSortedTaskStates(projectId)
                 .stream()
-                .map(taskDtoStateFactory::makeTaskStateDto)
+                .map(taskStateDtoFactory::makeTaskStateDto)
                 .collect(Collectors.toList());
     }
 
@@ -71,9 +71,9 @@ public class TaskStateController {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
         }
 
-        ProjectEntity project = entityFetchService.getProjectOrThrowException(projectId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
 
-        validateUserRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
+        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
 
         Optional<TaskStateEntity> optionalAnotherTaskState = Optional.empty();
 
@@ -99,19 +99,18 @@ public class TaskStateController {
                         .build()
         );
 
-        optionalAnotherTaskState
-                .ifPresent(anotherTaskState -> {
+        optionalAnotherTaskState.ifPresent(anotherTaskState -> {
 
-                        taskStateEntity.setLeftTaskState(anotherTaskState);
+            taskStateEntity.setLeftTaskState(anotherTaskState);
 
-                        anotherTaskState.setRightTaskState(taskStateEntity);
+            anotherTaskState.setRightTaskState(taskStateEntity);
 
-                        taskStateRepository.saveAndFlush(anotherTaskState);
-                });
+            taskStateRepository.saveAndFlush(anotherTaskState);
+        });
 
         final TaskStateEntity savedTaskStateEntity = taskStateRepository.saveAndFlush(taskStateEntity);
 
-        return taskDtoStateFactory.makeTaskStateDto(savedTaskStateEntity);
+        return taskStateDtoFactory.makeTaskStateDto(savedTaskStateEntity);
     }
 
     @PatchMapping(UPDATE_TASK_STATE)
@@ -125,16 +124,16 @@ public class TaskStateController {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
         }
 
-        TaskStateEntity taskState = entityFetchService.getTaskStateOrThrowException(taskStateId);
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
 
-        validateUserRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+        validateRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
 
         taskStateRepository
                 .findTaskStateEntityByProjectIdAndNameContaining(
-                        taskState.getProject().getUserId(),
+                        taskState.getProject().getId(),
                         taskState.getName()
                 )
-                .filter(anotherTaskState -> !anotherTaskState.getId().equals(taskStateId))
+                .filter(anotherTaskState -> !anotherTaskState.getName().equals(taskStateName))
                 .ifPresent(_ -> {
                     throw new CustomAppException(HttpStatus.BAD_REQUEST,
                             String.format("Task state with name %s already exists", taskStateName));
@@ -145,57 +144,53 @@ public class TaskStateController {
 
         taskStateRepository.saveAndFlush(taskState);
 
-        return taskDtoStateFactory.makeTaskStateDto(taskState);
+        return taskStateDtoFactory.makeTaskStateDto(taskState);
     }
 
     @PatchMapping(CHANGE_TASK_STATE_POSITION)
     public TaskStateDto changeTaskStatePosition(
                 @PathVariable(name = "task_state_id") Long taskStateId,
-                @RequestParam(name = "left_task_state_id", required = false) Optional<Long> optionalLeftTaskStateId,
-                @RequestParam(name = "user_id") Long userId
-            ) {
+                @RequestParam(name = "right_task_state_id", required = false) Optional<Long> optionalRightTaskStateId,
+                @RequestParam(name = "user_id") Long userId){
 
-        TaskStateEntity selectedTaskState = entityFetchService.getTaskStateOrThrowException(taskStateId);
+        TaskStateEntity selectedTaskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
 
         ProjectEntity project = selectedTaskState.getProject();
 
-        validateUserRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
+        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
 
-        if (taskStatePositionService.isPositionUnchanged(selectedTaskState, optionalLeftTaskStateId)) {
-            return taskDtoStateFactory.makeTaskStateDto(selectedTaskState);
+        if (taskStateHelper.isPositionUnchanged(selectedTaskState, optionalRightTaskStateId)) {
+            return taskStateDtoFactory.makeTaskStateDto(selectedTaskState);
         }
 
-        Optional<TaskStateEntity> optionalNewLeftTaskState = taskStatePositionService
-                .resolveNewLeftTaskState(optionalLeftTaskStateId, taskStateId, project);
+        Optional<TaskStateEntity> optionalNewRightTaskState = taskStateHelper
+                .resolveNewRightTaskState(optionalRightTaskStateId, taskStateId, project);
 
-        Optional<TaskStateEntity> optionalNewRightTaskState = taskStatePositionService
-                .resolveNewRightTaskState(optionalNewLeftTaskState, project);
+        Optional<TaskStateEntity> optionalNewLeftTaskState = taskStateHelper
+                .resolveNewLeftTaskState(optionalNewRightTaskState, project);
 
-        taskStatePositionService.replaceOldTaskStatesPosition(selectedTaskState);
+        taskStateHelper.replaceOldTaskStatesPosition(selectedTaskState);
 
-        taskStatePositionService.updateTaskStatePosition(selectedTaskState, optionalNewLeftTaskState, optionalNewRightTaskState);
+        selectedTaskState = taskStateHelper.updateTaskStatePosition(selectedTaskState, optionalNewLeftTaskState, optionalNewRightTaskState);
 
-        return taskDtoStateFactory.makeTaskStateDto(selectedTaskState);
+        return taskStateDtoFactory.makeTaskStateDto(selectedTaskState);
     }
 
     @DeleteMapping(DELETE_TASK_STATE)
-    public ActDto deleteTaskState(
+    public AckDto deleteTaskState(
             @PathVariable(name = "task_state_id") Long taskStateId,
             @RequestParam(name = "user_id") Long userId){
             
-        TaskStateEntity taskState = entityFetchService.getTaskStateOrThrowException(taskStateId);
-    
-        validateUserRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
 
-        taskStatePositionService.replaceOldTaskStatesPosition(taskState);
+        validateRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
 
-        taskState.setLeftTaskState(null);
-        taskState.setRightTaskState(null);
+        taskStateHelper.replaceOldTaskStatesPosition(taskState);
 
         taskStateRepository.saveAndFlush(taskState);
 
-        taskStateRepository.deleteById(taskStateId);
+        taskStateRepository.delete(taskState);
 
-        return ActDto.builder().answer(true).build();
+        return AckDto.builder().answer(true).build();
     }
 }

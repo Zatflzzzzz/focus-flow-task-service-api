@@ -7,6 +7,7 @@ import org.myProject.focus.flow.service.store.entities.enums.Category;
 import org.myProject.focus.flow.service.store.entities.enums.Priority;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -31,9 +32,26 @@ public class TaskEntity {
 
     Priority priority;
 
+    @OneToOne
+    TaskEntity higherPriorityTask;
+
+    @OneToOne
+    TaskEntity lowerPriorityTask;
+
+    @ManyToOne
+    TaskStateEntity taskState;
+
     @Builder.Default
     LocalDateTime updatedAt = LocalDateTime.now();
 
     @Builder.Default
     LocalDateTime createdAt = LocalDateTime.now();
+
+    public Optional<TaskEntity> getHigherPriorityTask() {
+        return Optional.ofNullable(higherPriorityTask);
+    }
+
+    public Optional<TaskEntity> getLowerPriorityTask() {
+        return Optional.ofNullable(lowerPriorityTask);
+    }
 }

@@ -10,5 +10,7 @@ public interface TaskStateRepository extends JpaRepository<TaskStateEntity, Long
 
     Optional<TaskStateEntity> findTaskStateEntityByLeftTaskStateIsNullAndProjectId(Long projectId);
 
+    Optional<TaskStateEntity> findTaskStateEntityByRightTaskStateIsNullAndProjectId(Long projectId);
+
     Optional<TaskStateEntity> findTaskStateEntityByProjectIdAndNameContaining(Long projectId, String taskStateName);
 }

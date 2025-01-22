@@ -32,6 +32,12 @@ public class TaskDto {
     @NonNull
     Priority priority;
 
+    @JsonProperty("higher_priority_task_id")
+    Long higherPriorityTaskId;
+
+    @JsonProperty("lower_priority_task_id")
+    Long lowerPriorityTaskId;
+
     @NonNull
     @JsonProperty("updated_at")
     LocalDateTime updatedAt;

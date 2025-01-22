@@ -17,6 +17,8 @@ public class TaskDtoFactory {
                 .priority(entity.getPriority())
                 .updatedAt(entity.getUpdatedAt())
                 .deadline(entity.getDeadline())
+                .higherPriorityTaskId(entity.getHigherPriorityTask().map(TaskEntity::getId).orElse(null))
+                .lowerPriorityTaskId(entity.getLowerPriorityTask().map(TaskEntity::getId).orElse(null))
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
