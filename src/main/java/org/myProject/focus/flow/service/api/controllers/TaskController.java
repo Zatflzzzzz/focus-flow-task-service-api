@@ -9,6 +9,7 @@ import org.myProject.focus.flow.service.api.controllers.helpers.TaskStateHelper;
 import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
 import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.TaskDto;
+import org.myProject.focus.flow.service.api.dto.TaskStateDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
 import org.myProject.focus.flow.service.api.factories.TaskDtoFactory;
 import org.myProject.focus.flow.service.store.entities.TaskEntity;
@@ -36,26 +37,33 @@ public class TaskController {
 
     TaskDtoFactory taskDtoFactory;
 
-    ValidateRequestsHelper validateRequestsService;
-
     TaskStateHelper taskStateHelper;
     
     TaskHelper taskHelper;
-    
+
+    public static final String GET_TASK = "/api/tasks/{task_id}";
     public static final String GET_TASKS = "/api/task-state/{task_state_id}/tasks";
     public static final String CREATE_TASK = "/api/task-state/{task_state_id}/tasks";
     public static final String UPDATE_TASK = "/api/tasks/{task_id}";
     public static final String CHANGE_TASK_POSITION = "/api/tasks/{task_id}/position/change";
     public static final String DELETE_TASK = "/api/tasks/{task_id}";
 
+    @GetMapping(GET_TASK)
+    public TaskDto getTaskById(
+            @PathVariable("task_id") Long taskId,
+            @RequestParam("user_id") Long userId) {
+
+        TaskEntity task = taskHelper.getTaskOrThrowException(taskId, userId);
+
+        return taskDtoFactory.makeTaskDto(task);
+    }
+
     @GetMapping(GET_TASKS)
     public List<TaskDto> getTasks(
             @PathVariable("task_state_id") Long taskStateId,
             @RequestParam("user_id") Long userId) {
 
-        TaskStateEntity task = taskStateHelper.getTaskStateOrThrowException(taskStateId);
-
-        validateRequestsService.verifyingUserAccessToProject(task.getProject().getUserId(), userId);
+        TaskStateEntity task = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         return taskHelper
                 .getSortedTasks(taskStateId)
@@ -80,9 +88,7 @@ public class TaskController {
 
         if (Objects.isNull(description)) description = "";
 
-        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
-
-        validateRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         Optional<TaskEntity> oldLowerPriorityTask = taskRepository
                 .findTaskEntityByLowerPriorityTaskIsNullAndTaskStateId(taskStateId);
@@ -127,10 +133,8 @@ public class TaskController {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "title cannot be empty");
         }
 
-        TaskEntity task = taskHelper.getTaskOrThrowException(taskId);
-        
-        validateRequestsService.verifyingUserAccessToProject(task.getTaskState().getProject().getUserId(), userId);
-        
+        TaskEntity task = taskHelper.getTaskOrThrowException(taskId, userId);
+
         task.setTitle(title);
         task.setDescription(description);
         task.setDeadline(deadline);
@@ -148,9 +152,7 @@ public class TaskController {
             @RequestParam("lower_task_id") Optional<Long> optionalLowerPriorityTaskId,
             @RequestParam("user_id") Long userId){
 
-        TaskEntity selectedTask = taskHelper.getTaskOrThrowException(taskId);
-
-        validateRequestsService.verifyingUserAccessToProject(selectedTask.getTaskState().getProject().getUserId(), userId);
+        TaskEntity selectedTask = taskHelper.getTaskOrThrowException(taskId, userId);
 
         if(taskHelper.isPositionChanged(selectedTask, optionalLowerPriorityTaskId)) {
             return taskDtoFactory.makeTaskDto(selectedTask);
@@ -174,9 +176,7 @@ public class TaskController {
             @PathVariable("task_id") Long taskId,
             @RequestParam("user_id") Long userId) {
 
-        TaskEntity task = taskHelper.getTaskOrThrowException(taskId);
-
-        validateRequestsService.verifyingUserAccessToProject(task.getTaskState().getProject().getUserId(), userId);
+        TaskEntity task = taskHelper.getTaskOrThrowException(taskId, userId);
 
         taskHelper.replaceOldTasksPositions(task);
 

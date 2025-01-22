@@ -19,14 +19,20 @@ public class ProjectHelper {
 
     ProjectRepository projectRepository;
 
-    public ProjectEntity getProjectOrThrowException(Long projectId) {
+    ValidateRequestsHelper validateRequestsHelper;
 
-        return projectRepository
+    public ProjectEntity getProjectOrThrowException(Long projectId, Long userId) {
+
+        ProjectEntity project = projectRepository
                 .findById(projectId)
                 .orElseThrow(() ->
                         new CustomAppException(
                                 HttpStatus.NOT_FOUND,
                                 String.format("Project with id (%s) doesn't exist", projectId)
                         ));
+
+        validateRequestsHelper.verifyingUserAccessToProject(project.getUserId(), userId);
+
+        return project;
     }
 }

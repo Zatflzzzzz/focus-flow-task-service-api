@@ -33,11 +33,20 @@ public class ProjectController {
 
     ProjectHelper projectHelper;
 
-    ValidateRequestsHelper validateRequestsHelper;
-
+    public static final String GET_PROJECT = "/api/projects/{project_id}";
     public static final String FETCH_PROJECT = "/api/projects";
     public static final String CREATE_OR_UPDATE_PROJECT = "/api/projects";
     public static final String DELETE_PROJECT = "/api/projects/{project_id}";
+
+    @GetMapping(GET_PROJECT)
+    public ProjectDto getProject(
+            @PathVariable("project_id") Long projectId,
+            @RequestParam(value = "user_id") Long userId) {
+
+            ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
+
+            return projectDtoFactory.makeProjectDto(project);
+    }
 
     @GetMapping(FETCH_PROJECT)
     public List<ProjectDto> fetchProject(
@@ -70,10 +79,8 @@ public class ProjectController {
         }
 
         final ProjectEntity project = optionalProjectId
-                .map(projectHelper::getProjectOrThrowException)
+                .map(projectId -> projectHelper.getProjectOrThrowException(projectId, userId))
                 .orElseGet(() -> ProjectEntity.builder().userId(userId).build());
-
-        validateRequestsHelper.verifyingUserAccessToProject(project.getUserId(), userId);
 
         optionalProjectName
                 .ifPresent(projectName -> {
@@ -99,9 +106,7 @@ public class ProjectController {
             @PathVariable("project_id") Long projectId,
             @RequestParam(value = "user_id") Long userId) {
 
-        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
-
-        validateRequestsHelper.verifyingUserAccessToProject(project.getUserId(), userId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
 
         projectRepository.deleteById(projectId);
 

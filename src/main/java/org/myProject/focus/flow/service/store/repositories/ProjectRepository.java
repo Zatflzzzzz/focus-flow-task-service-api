@@ -3,6 +3,7 @@ package org.myProject.focus.flow.service.store.repositories;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -13,4 +14,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
     Stream<ProjectEntity> streamAllByUserId(Long userId);
 
     Stream<ProjectEntity> streamAllByNameContainingIgnoreCaseAndUserId(String name, Long userId);
+
+    Stream<ProjectEntity> findAllByUserId(Long userId);
 }

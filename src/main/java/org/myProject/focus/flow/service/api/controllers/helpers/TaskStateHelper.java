@@ -26,12 +26,19 @@ public class TaskStateHelper {
 
     TaskStateRepository taskStateRepository;
 
-    public TaskStateEntity getTaskStateOrThrowException(Long taskStateId) {
-        return taskStateRepository
+    ValidateRequestsHelper validateRequestsHelper;
+
+    public TaskStateEntity getTaskStateOrThrowException(Long taskStateId, Long userId) {
+
+        TaskStateEntity taskState = taskStateRepository
                 .findById(taskStateId)
                 .orElseThrow(() -> new CustomAppException(HttpStatus.NOT_FOUND,
                         String.format("Task state with id \"%s\" not found", taskStateId))
                 );
+
+        validateRequestsHelper.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+
+        return taskState;
     }
 
     public List<TaskStateEntity> getSortedTaskStates(Long projectId) {

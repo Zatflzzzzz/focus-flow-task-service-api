@@ -16,6 +16,7 @@ import org.myProject.focus.flow.service.store.entities.TaskStateEntity;
 import org.myProject.focus.flow.service.store.entities.enums.Layouts;
 import org.myProject.focus.flow.service.store.repositories.TaskStateRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,26 +33,33 @@ public class TaskStateController {
 
     TaskStateDtoFactory taskStateDtoFactory;
 
-    ValidateRequestsHelper validateRequestsService;
-
     ProjectHelper projectHelper;
 
     TaskStateHelper taskStateHelper;
 
+    public static final String GET_TASK_STATE = "/api/tasks-states/{task_state_id}";
     public static final String GET_TASK_STATES = "/api/projects/{project_id}/tasks-states";
     public static final String CREATE_TASK_STATE = "/api/projects/{project_id}/tasks-states";
     public static final String UPDATE_TASK_STATE = "/api/tasks-states/{task_state_id}";
     public static final String CHANGE_TASK_STATE_POSITION = "/api/tasks-states/{task_state_id}/position/change";
     public static final String DELETE_TASK_STATE = "/api/tasks-states/{task_state_id}";
 
+    @GetMapping(GET_TASK_STATE)
+    public TaskStateDto getTaskStateById(
+            @PathVariable("task_state_id") Long taskStateId,
+            @RequestParam("user_id") Long userId) {
+
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
+
+        return taskStateDtoFactory.makeTaskStateDto(taskState);
+    }
+
     @GetMapping(GET_TASK_STATES)
     public List<TaskStateDto> getTasks(
             @PathVariable("project_id") Long projectId,
             @RequestParam("user_id") Long userId) {
 
-        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
-
-        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
+        projectHelper.getProjectOrThrowException(projectId, userId);
 
         return taskStateHelper
                 .getSortedTaskStates(projectId)
@@ -71,9 +79,7 @@ public class TaskStateController {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
         }
 
-        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId);
-
-        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
 
         Optional<TaskStateEntity> optionalAnotherTaskState = Optional.empty();
 
@@ -84,7 +90,7 @@ public class TaskStateController {
                         String.format("Task state with name %s already exists", taskStateName));
             }
 
-            if(!taskState.getRightTaskState().isPresent()){
+            if(taskState.getRightTaskState().isEmpty()){
                 optionalAnotherTaskState = Optional.of(taskState);
                 break;
             }
@@ -124,9 +130,7 @@ public class TaskStateController {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
         }
 
-        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
-
-        validateRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         taskStateRepository
                 .findTaskStateEntityByProjectIdAndNameContaining(
@@ -153,11 +157,9 @@ public class TaskStateController {
                 @RequestParam(name = "right_task_state_id", required = false) Optional<Long> optionalRightTaskStateId,
                 @RequestParam(name = "user_id") Long userId){
 
-        TaskStateEntity selectedTaskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
+        TaskStateEntity selectedTaskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         ProjectEntity project = selectedTaskState.getProject();
-
-        validateRequestsService.verifyingUserAccessToProject(project.getUserId(), userId);
 
         if (taskStateHelper.isPositionUnchanged(selectedTaskState, optionalRightTaskStateId)) {
             return taskStateDtoFactory.makeTaskStateDto(selectedTaskState);
@@ -181,9 +183,7 @@ public class TaskStateController {
             @PathVariable(name = "task_state_id") Long taskStateId,
             @RequestParam(name = "user_id") Long userId){
             
-        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId);
-
-        validateRequestsService.verifyingUserAccessToProject(taskState.getProject().getUserId(), userId);
+        TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         taskStateHelper.replaceOldTaskStatesPosition(taskState);
 
