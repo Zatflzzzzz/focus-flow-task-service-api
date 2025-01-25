@@ -1,0 +1,26 @@
+version: '4.'
+
+services:
+  app:
+    image: 'c78cd8ce33cd'
+    container_name: app
+    expose:
+      - '8080'
+    ports:
+      - '8080:8080'
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=Timofey7828102
+      - DB_URL=jdbc:postgresql://db:5432/focus-flow-task-service
+    depends_on:
+      - db
+  db:
+    image: 'postgres'
+    container_name: db
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Timofey7828102
+      - POSTGRES_DB=focus-flow-task-service
+

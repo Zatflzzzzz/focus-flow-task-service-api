@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="focus-flow-task-service@localhost" uuid="4eb8dd53-2b84-4487-99fa-5655cf7d80ea">
+    <data-source source="LOCAL" name="focus-flow-task-service@localhost" uuid="68938def-3124-45a1-8c1e-636b9068b68b">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

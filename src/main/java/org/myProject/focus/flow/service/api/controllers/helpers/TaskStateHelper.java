@@ -7,7 +7,6 @@ import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.entities.TaskStateEntity;
-import org.myProject.focus.flow.service.store.repositories.TaskRepository;
 import org.myProject.focus.flow.service.store.repositories.TaskStateRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

@@ -9,7 +9,6 @@ import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.repositories.ProjectRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)

@@ -1,2 +1,3 @@
 rootProject.name = 'focus-flow-task-tracker-api'
+include 'docker'
 

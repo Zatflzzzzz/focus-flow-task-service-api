@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.api.controllers.helpers.TaskHelper;
 import org.myProject.focus.flow.service.api.controllers.helpers.TaskStateHelper;
-import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
 import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.TaskDto;
-import org.myProject.focus.flow.service.api.dto.TaskStateDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
 import org.myProject.focus.flow.service.api.factories.TaskDtoFactory;
 import org.myProject.focus.flow.service.store.entities.TaskEntity;
@@ -18,6 +16,7 @@ import org.myProject.focus.flow.service.store.entities.enums.Category;
 import org.myProject.focus.flow.service.store.entities.enums.Priority;
 import org.myProject.focus.flow.service.store.repositories.TaskRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,11 +33,8 @@ import java.util.stream.Collectors;
 public class TaskController {
 
     TaskRepository taskRepository;
-
     TaskDtoFactory taskDtoFactory;
-
     TaskStateHelper taskStateHelper;
-    
     TaskHelper taskHelper;
 
     public static final String GET_TASK = "/api/tasks/{task_id}";
@@ -48,6 +44,7 @@ public class TaskController {
     public static final String CHANGE_TASK_POSITION = "/api/tasks/{task_id}/position/change";
     public static final String DELETE_TASK = "/api/tasks/{task_id}";
 
+    @Operation(summary = "Get task by ID", description = "Fetch a task by its ID and user ID")
     @GetMapping(GET_TASK)
     public TaskDto getTaskById(
             @PathVariable("task_id") Long taskId,
@@ -58,12 +55,13 @@ public class TaskController {
         return taskDtoFactory.makeTaskDto(task);
     }
 
+    @Operation(summary = "Get tasks by state", description = "Fetch all tasks associated with a specific task state and user ID")
     @GetMapping(GET_TASKS)
     public List<TaskDto> getTasks(
             @PathVariable("task_state_id") Long taskStateId,
             @RequestParam("user_id") Long userId) {
 
-        TaskStateEntity task = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
+        taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         return taskHelper
                 .getSortedTasks(taskStateId)
@@ -72,6 +70,7 @@ public class TaskController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(summary = "Create a new task", description = "Create a new task under a specific task state with various attributes such as title, description, deadline, category, and priority")
     @PostMapping(CREATE_TASK)
     public TaskDto createTask(
             @PathVariable("task_state_id") Long taskStateId,
@@ -119,6 +118,7 @@ public class TaskController {
         return taskDtoFactory.makeTaskDto(savedTask);
     }
 
+    @Operation(summary = "Update a task", description = "Update the attributes of an existing task such as title, description, deadline, category, and priority")
     @PatchMapping(UPDATE_TASK)
     public TaskDto updateTask(
             @PathVariable("task_id") Long taskId,
@@ -146,6 +146,7 @@ public class TaskController {
         return taskDtoFactory.makeTaskDto(task);
     }
 
+    @Operation(summary = "Change task position", description = "Change the position of a task relative to other tasks based on priority")
     @PatchMapping(CHANGE_TASK_POSITION)
     public TaskDto changeTaskPosition(
             @PathVariable("task_id") Long taskId,
@@ -171,6 +172,7 @@ public class TaskController {
         return taskDtoFactory.makeTaskDto(selectedTask);
     }
 
+    @Operation(summary = "Delete a task", description = "Delete an existing task by its ID and adjust the positions of related tasks")
     @DeleteMapping(DELETE_TASK)
     public AckDto deleteTask(
             @PathVariable("task_id") Long taskId,
