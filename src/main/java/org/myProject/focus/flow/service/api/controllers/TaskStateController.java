@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.api.controllers.helpers.ProjectHelper;
 import org.myProject.focus.flow.service.api.controllers.helpers.TaskStateHelper;
-import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
 import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.TaskStateDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
@@ -16,7 +15,7 @@ import org.myProject.focus.flow.service.store.entities.TaskStateEntity;
 import org.myProject.focus.flow.service.store.entities.enums.Layouts;
 import org.myProject.focus.flow.service.store.repositories.TaskStateRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.config.Task;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,6 +43,7 @@ public class TaskStateController {
     public static final String CHANGE_TASK_STATE_POSITION = "/api/tasks-states/{task_state_id}/position/change";
     public static final String DELETE_TASK_STATE = "/api/tasks-states/{task_state_id}";
 
+    @Operation(summary = "Get TaskState by ID", description = "Returns information about a TaskState by its ID.")
     @GetMapping(GET_TASK_STATE)
     public TaskStateDto getTaskStateById(
             @PathVariable("task_state_id") Long taskStateId,
@@ -54,6 +54,7 @@ public class TaskStateController {
         return taskStateDtoFactory.makeTaskStateDto(taskState);
     }
 
+    @Operation(summary = "Get all TaskStates in a project", description = "Returns a list of all TaskStates for a specified project.")
     @GetMapping(GET_TASK_STATES)
     public List<TaskStateDto> getTasks(
             @PathVariable("project_id") Long projectId,
@@ -68,6 +69,7 @@ public class TaskStateController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(summary = "Create TaskState", description = "Creates a new TaskState within the specified project.")
     @PostMapping(CREATE_TASK_STATE)
     public TaskStateDto createTaskState(
             @PathVariable(name = "project_id") Long projectId,
@@ -119,6 +121,7 @@ public class TaskStateController {
         return taskStateDtoFactory.makeTaskStateDto(savedTaskStateEntity);
     }
 
+    @Operation(summary = "Update TaskState", description = "Updates the name and layout type of a TaskState by its ID.")
     @PatchMapping(UPDATE_TASK_STATE)
     public TaskStateDto updateTaskState(
             @PathVariable(name = "task_state_id") Long taskStateId,
@@ -138,7 +141,7 @@ public class TaskStateController {
                         taskState.getName()
                 )
                 .filter(anotherTaskState -> !anotherTaskState.getName().equals(taskStateName))
-                .ifPresent(_ -> {
+                .ifPresent(it -> {
                     throw new CustomAppException(HttpStatus.BAD_REQUEST,
                             String.format("Task state with name %s already exists", taskStateName));
                 });
@@ -151,6 +154,7 @@ public class TaskStateController {
         return taskStateDtoFactory.makeTaskStateDto(taskState);
     }
 
+    @Operation(summary = "Change TaskState position", description = "Changes the position of a TaskState within the list.")
     @PatchMapping(CHANGE_TASK_STATE_POSITION)
     public TaskStateDto changeTaskStatePosition(
                 @PathVariable(name = "task_state_id") Long taskStateId,
@@ -178,6 +182,7 @@ public class TaskStateController {
         return taskStateDtoFactory.makeTaskStateDto(selectedTaskState);
     }
 
+    @Operation(summary = "Delete TaskState", description = "Deletes a TaskState by its ID.")
     @DeleteMapping(DELETE_TASK_STATE)
     public AckDto deleteTaskState(
             @PathVariable(name = "task_state_id") Long taskStateId,

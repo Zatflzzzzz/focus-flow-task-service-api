@@ -1,11 +1,11 @@
 package org.myProject.focus.flow.service.api.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.myProject.focus.flow.service.api.controllers.helpers.ProjectHelper;
-import org.myProject.focus.flow.service.api.controllers.helpers.ValidateRequestsHelper;
 import org.myProject.focus.flow.service.api.dto.AckDto;
 import org.myProject.focus.flow.service.api.dto.ProjectDto;
 import org.myProject.focus.flow.service.api.exceptions.CustomAppException;
@@ -38,16 +38,18 @@ public class ProjectController {
     public static final String CREATE_OR_UPDATE_PROJECT = "/api/projects";
     public static final String DELETE_PROJECT = "/api/projects/{project_id}";
 
+    @Operation(summary = "Get project by ID", description = "Fetches a project by its ID for a given user.")
     @GetMapping(GET_PROJECT)
     public ProjectDto getProject(
             @PathVariable("project_id") Long projectId,
             @RequestParam(value = "user_id") Long userId) {
 
-            ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
+        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
 
-            return projectDtoFactory.makeProjectDto(project);
+        return projectDtoFactory.makeProjectDto(project);
     }
 
+    @Operation(summary = "Fetch projects", description = "Retrieves a list of projects for a user, optionally filtered by a name prefix.")
     @GetMapping(FETCH_PROJECT)
     public List<ProjectDto> fetchProject(
             @RequestParam(value = "prefix_name", required = false) Optional<String> optionalPrefixName,
@@ -64,6 +66,7 @@ public class ProjectController {
                 .collect(Collectors.toList());
     }
 
+    @Operation(summary = "Create or update a project", description = "Creates a new project or updates an existing one based on the provided parameters.")
     @PutMapping(CREATE_OR_UPDATE_PROJECT)
     public ProjectDto createOrUpdateProject(
             @RequestParam(value = "project_id", required = false) Optional<Long> optionalProjectId,
@@ -72,9 +75,9 @@ public class ProjectController {
 
         optionalProjectName = optionalProjectName.filter(projectName -> !projectName.trim().isEmpty());
 
-        boolean isCreate = !optionalProjectId.isPresent();
+        boolean isCreate = optionalProjectId.isEmpty();
 
-        if(isCreate && !optionalProjectName.isPresent()) {
+        if(isCreate && optionalProjectName.isEmpty()) {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Project name cannot be empty");
         }
 
@@ -101,12 +104,13 @@ public class ProjectController {
         return projectDtoFactory.makeProjectDto(savedProject);
     }
 
+    @Operation(summary = "Delete a project", description = "Deletes a project by its ID for a given user.")
     @DeleteMapping(DELETE_PROJECT)
     public AckDto deleteProject(
             @PathVariable("project_id") Long projectId,
             @RequestParam(value = "user_id") Long userId) {
 
-        ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
+        projectHelper.getProjectOrThrowException(projectId, userId);
 
         projectRepository.deleteById(projectId);
 

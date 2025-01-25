@@ -2,10 +2,26 @@ plugins {
     id 'java'
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springframework.boot") version "3.4.1"
+    id 'com.bmuschko.docker-java-application' version '9.3.2'
 }
 
 group = 'org.myOrganization'
 version = '1.0-SNAPSHOT'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.myProject.focus.flow.service.Application' // Укажите главный класс
+    }
+}
+
+docker {
+    javaApplication {
+        baseImage = 'openjdk:21'
+        maintainer = 'timofeysangjey@gmail.com'
+        ports = [8080]
+        images = ['my-image:latest'] // Имя и тег для образа
+    }
+}
 
 repositories {
     mavenCentral()
@@ -22,7 +38,11 @@ dependencies {
  * Other
  */
 dependencies {
+    testImplementation group: 'com.h2database', name: 'h2', version: '2.2.224'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.4'
+    implementation group: 'io.github.cdimascio', name: 'dotenv-java', version: '3.0.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.3'
+    testImplementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-api', version: '2.3.0'
 }
 
 /**
@@ -41,9 +61,16 @@ dependencies {
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.11.3'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.11.3'
+}
 
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
     useJUnitPlatform()
 }
+

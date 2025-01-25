@@ -1,12 +1,12 @@
 ---
   server:
-    port: 8080
+    port: 6231
 
   spring:
     datasource:
-      url: jdbc:postgresql://localhost:5432/focus-flow-task-service
-      username: postgres
-      password: Timofey7828102
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/focus-flow-task-api}
+      username: ${DB_USER:postgres}
+      password: ${DB_PASSWORD:Timofey7828102}
       driver-class-name: org.postgresql.Driver
     jpa:
       hibernate:
@@ -14,4 +14,7 @@
       properties:
         hibernate:
           dialect: org.hibernate.dialect.PostgreSQLDialect
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
 

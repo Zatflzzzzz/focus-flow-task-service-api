@@ -31,7 +31,7 @@ public class TaskHelper {
         TaskEntity task = taskRepository
                 .findById(taskId)
                 .orElseThrow(() -> new CustomAppException(HttpStatus.NOT_FOUND,
-                        String.format("Task with id %sd not found", taskId))
+                        String.format("Task with id %s not found", taskId))
                 );
 
         validateRequestsHelper.verifyingUserAccessToProject(task.getTaskState().getProject().getUserId(), userId);

@@ -12,4 +12,8 @@ public class CustomAppException extends RuntimeException {
         super(message);
         this.status = status;
     }
+
+    public HttpStatus getHttpStatus() {
+        return status;
+    }
 }
