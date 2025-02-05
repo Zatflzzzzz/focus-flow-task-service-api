@@ -1,4 +1,4 @@
-version: '4.'
+version: '3.8'
 
 services:
   app:
@@ -26,4 +26,3 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=Timofey7828102
       - POSTGRES_DB=focus-flow-task-api
-

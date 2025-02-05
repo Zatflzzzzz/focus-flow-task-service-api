@@ -12,7 +12,7 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    @Value("${server.port:6231}") // Default value is 6231 if the property is not set
+    @Value("${server.port:6231}")
     private String serverPort;
 
     @Bean
