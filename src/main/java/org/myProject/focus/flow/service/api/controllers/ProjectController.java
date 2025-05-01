@@ -13,6 +13,8 @@ import org.myProject.focus.flow.service.api.factories.ProjectDtoFactory;
 import org.myProject.focus.flow.service.store.entities.ProjectEntity;
 import org.myProject.focus.flow.service.store.repositories.ProjectRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,7 +44,9 @@ public class ProjectController {
     @GetMapping(GET_PROJECT)
     public ProjectDto getProject(
             @PathVariable("project_id") Long projectId,
-            @RequestParam(value = "user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         ProjectEntity project = projectHelper.getProjectOrThrowException(projectId, userId);
 
@@ -53,7 +57,9 @@ public class ProjectController {
     @GetMapping(FETCH_PROJECT)
     public List<ProjectDto> fetchProject(
             @RequestParam(value = "prefix_name", required = false) Optional<String> optionalPrefixName,
-            @RequestParam(value = "user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         optionalPrefixName = optionalPrefixName.filter(prefixName -> !prefixName.trim().isEmpty());
 
@@ -71,7 +77,9 @@ public class ProjectController {
     public ProjectDto createOrUpdateProject(
             @RequestParam(value = "project_id", required = false) Optional<Long> optionalProjectId,
             @RequestParam(value = "project_name", required = false) Optional<String> optionalProjectName,
-            @RequestParam(value = "user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         optionalProjectName = optionalProjectName.filter(projectName -> !projectName.trim().isEmpty());
 
@@ -108,7 +116,9 @@ public class ProjectController {
     @DeleteMapping(DELETE_PROJECT)
     public AckDto deleteProject(
             @PathVariable("project_id") Long projectId,
-            @RequestParam(value = "user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         projectHelper.getProjectOrThrowException(projectId, userId);
 

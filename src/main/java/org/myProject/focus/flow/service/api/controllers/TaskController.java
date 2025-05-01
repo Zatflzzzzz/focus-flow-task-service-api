@@ -18,6 +18,8 @@ import org.myProject.focus.flow.service.store.repositories.TaskRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -48,7 +50,9 @@ public class TaskController {
     @GetMapping(GET_TASK)
     public TaskDto getTaskById(
             @PathVariable("task_id") Long taskId,
-            @RequestParam("user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         TaskEntity task = taskHelper.getTaskOrThrowException(taskId, userId);
 
@@ -59,7 +63,9 @@ public class TaskController {
     @GetMapping(GET_TASKS)
     public List<TaskDto> getTasks(
             @PathVariable("task_state_id") Long taskStateId,
-            @RequestParam("user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
@@ -79,7 +85,9 @@ public class TaskController {
             @RequestParam LocalDateTime deadline,
             @RequestParam Category category,
             @RequestParam Priority priority,
-            @RequestParam("user_id") Long userId){
+            @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         if(title.trim().isEmpty()){
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "title cannot be empty");
@@ -127,7 +135,9 @@ public class TaskController {
             @RequestParam LocalDateTime deadline,
             @RequestParam Category category,
             @RequestParam Priority priority,
-            @RequestParam("user_id") Long userId){
+            @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         if(title.trim().isEmpty()){
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "title cannot be empty");
@@ -151,7 +161,9 @@ public class TaskController {
     public TaskDto changeTaskPosition(
             @PathVariable("task_id") Long taskId,
             @RequestParam("lower_task_id") Optional<Long> optionalLowerPriorityTaskId,
-            @RequestParam("user_id") Long userId){
+            @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         TaskEntity selectedTask = taskHelper.getTaskOrThrowException(taskId, userId);
 
@@ -176,7 +188,9 @@ public class TaskController {
     @DeleteMapping(DELETE_TASK)
     public AckDto deleteTask(
             @PathVariable("task_id") Long taskId,
-            @RequestParam("user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         TaskEntity task = taskHelper.getTaskOrThrowException(taskId, userId);
 

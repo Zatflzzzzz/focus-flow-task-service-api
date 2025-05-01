@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: focus-flow-task-api
-    ports:
-      - '6231:6231'
-    environment:
-      - DB_USER=postgres
-      - DB_PASSWORD=Timofey7828102
-      - DB_URL=jdbc:postgresql://db:5432/focus-flow-task-api
-    command: [ "./wait-for-it.sh", "db:5432", "--", "java", "-jar", "app.jar" ]
-    depends_on:
-      - db
-    restart: unless-stopped
+#  app:
+#    build:
+#      context: .
+#      dockerfile: docker/Dockerfile
+#    container_name: focus-flow-task-api
+#    ports:
+#      - '6231:6231'
+#    environment:
+#      - DB_USER=postgres
+#      - DB_PASSWORD=Timofey7828102
+#      - DB_URL=jdbc:postgresql://db:5432/focus-flow-task-api
+#    command: [ "./wait-for-it.sh", "db:5432", "--", "java", "-jar", "app.jar" ]
+#    depends_on:
+#      - db
+#    restart: unless-stopped
 
   db:
     image: 'postgres'
