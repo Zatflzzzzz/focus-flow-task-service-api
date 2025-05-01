@@ -16,6 +16,8 @@ import org.myProject.focus.flow.service.store.entities.enums.Layouts;
 import org.myProject.focus.flow.service.store.repositories.TaskStateRepository;
 import org.springframework.http.HttpStatus;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,8 +49,10 @@ public class TaskStateController {
     @GetMapping(GET_TASK_STATE)
     public TaskStateDto getTaskStateById(
             @PathVariable("task_state_id") Long taskStateId,
-            @RequestParam("user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
 
+        Long userId = Long.parseLong(jwt.getSubject());
+        
         TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         return taskStateDtoFactory.makeTaskStateDto(taskState);
@@ -58,8 +62,10 @@ public class TaskStateController {
     @GetMapping(GET_TASK_STATES)
     public List<TaskStateDto> getTasks(
             @PathVariable("project_id") Long projectId,
-            @RequestParam("user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
 
+        Long userId = Long.parseLong(jwt.getSubject());
+        
         projectHelper.getProjectOrThrowException(projectId, userId);
 
         return taskStateHelper
@@ -75,8 +81,10 @@ public class TaskStateController {
             @PathVariable(name = "project_id") Long projectId,
             @RequestParam(name = "task_state_name") String taskStateName,
             @RequestParam(name = "type_of_layout") Layouts layout,
-            @RequestParam(name = "user_id") Long userId) {
+            @AuthenticationPrincipal Jwt jwt) {
 
+        Long userId = Long.parseLong(jwt.getSubject());
+        
         if(taskStateName.trim().isEmpty()) {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
         }
@@ -127,7 +135,9 @@ public class TaskStateController {
             @PathVariable(name = "task_state_id") Long taskStateId,
             @RequestParam(name = "task_state_name") String taskStateName,
             @RequestParam(name = "type_of_layout") Layouts layout,
-            @RequestParam(name = "user_id") Long userId){
+            @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         if(taskStateName.trim().isEmpty()) {
             throw new CustomAppException(HttpStatus.BAD_REQUEST, "Task state name cannot be empty");
@@ -159,7 +169,9 @@ public class TaskStateController {
     public TaskStateDto changeTaskStatePosition(
                 @PathVariable(name = "task_state_id") Long taskStateId,
                 @RequestParam(name = "right_task_state_id", required = false) Optional<Long> optionalRightTaskStateId,
-                @RequestParam(name = "user_id") Long userId){
+                @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
 
         TaskStateEntity selectedTaskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
@@ -186,8 +198,10 @@ public class TaskStateController {
     @DeleteMapping(DELETE_TASK_STATE)
     public AckDto deleteTaskState(
             @PathVariable(name = "task_state_id") Long taskStateId,
-            @RequestParam(name = "user_id") Long userId){
-            
+            @AuthenticationPrincipal Jwt jwt){
+
+        Long userId = Long.parseLong(jwt.getSubject());
+
         TaskStateEntity taskState = taskStateHelper.getTaskStateOrThrowException(taskStateId, userId);
 
         taskStateHelper.replaceOldTaskStatesPosition(taskState);
